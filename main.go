@@ -106,7 +106,7 @@ func main() {
 	flag.Parse()
 
 	if *domainsArg == "" {
-		err := errors.New("Missing domain!\n")
+		err := errors.New("Missing domain! Run with -h to see all options.\n")
 		fmt.Print(err)
 		os.Exit(2)
 	}
@@ -114,7 +114,7 @@ func main() {
 	domains = strings.Split(fmt.Sprintf("%v", *domainsArg), ",")
 
 	if *destArg == "" {
-		err := errors.New("Missing destination!\n")
+		err := errors.New("Missing destination! Run with -h to see all options.\n")
 		fmt.Print(err)
 		os.Exit(2)
 	}
