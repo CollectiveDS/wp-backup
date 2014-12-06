@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -82,6 +83,11 @@ func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery
 
 func (this *Ext) Filter(ctx *gocrawl.URLContext, isVisited bool) bool {
 	if isVisited {
+		return false
+	}
+
+	match, _ := regexp.MatchString("wp-admin", ctx.URL().Host)
+	if match {
 		return false
 	}
 
