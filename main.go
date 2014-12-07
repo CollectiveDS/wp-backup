@@ -13,12 +13,16 @@ import (
 
 	"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
-	//"launchpad.net/goamz/aws"
-	//"launchpad.net/goamz/ec2"
+
+	"launchpad.net/goamz/aws"
+	"launchpad.net/goamz/s3"
 )
 
-var domains []string
-var destination string
+var (
+	domains     []string
+	destination string
+	s3con       *s3.S3
+)
 
 func dirExists(path string) (bool, error) {
 	_, err := os.Stat(path)
@@ -55,6 +59,27 @@ func writeToDisk(path string, str string) {
 	f.Sync()
 }
 
+func writeToS3(uri string, str string, ctype string) {
+	uri = strings.TrimPrefix(uri, "s3://")
+	parts := strings.SplitN(uri, "/", 2)
+	path := parts[1]
+	bucket := s3con.Bucket(parts[0])
+
+	data := []byte(str)
+	err := bucket.Put(path, data, ctype, s3.PublicRead)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func writeFile(path string, str string, ctype string) {
+	if strings.HasPrefix(destination, "s3://") {
+		writeToS3(path, str, ctype)
+	} else {
+		writeToDisk(path, str)
+	}
+}
+
 // gocrawl functions
 
 type Ext struct {
@@ -75,8 +100,9 @@ func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery
 		path = u.Path + "index.html"
 	}
 
-	fmt.Printf("Writing to: %s\n", path)
-	writeToDisk(destination+path, strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{"))
+	//fmt.Printf("Writing to: %s\n", path)
+	contentType := res.Header.Get("Content-Type")
+	writeFile(destination+path, strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{"), contentType)
 
 	return nil, true
 }
@@ -121,9 +147,18 @@ func main() {
 
 	destination = strings.TrimSuffix(fmt.Sprintf("%v", *destArg), "/")
 
-	flag, _ := dirExists(destination)
-	if flag == false {
-		os.MkdirAll(destination, 0755)
+	if strings.HasPrefix(destination, "s3://") {
+		// The AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables are used.
+		auth, err := aws.EnvAuth()
+		if err != nil {
+			panic(err.Error())
+		}
+		s3con = s3.New(auth, aws.USEast)
+	} else {
+		flag, _ := dirExists(destination)
+		if flag == false {
+			os.MkdirAll(destination, 0755)
+		}
 	}
 
 	ext := &Ext{&gocrawl.DefaultExtender{}}
