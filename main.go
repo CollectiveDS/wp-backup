@@ -23,7 +23,14 @@ var (
 	domains     []string
 	destination string
 	s3con       *s3.S3
+	debug       bool
 )
+
+func printDebug(msg string) {
+	if debug {
+		fmt.Println(msg)
+	}
+}
 
 func dirExists(path string) (bool, error) {
 	_, err := os.Stat(path)
@@ -90,7 +97,7 @@ type Ext struct {
 func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Document) (interface{}, bool) {
 	// Use the goquery document or res.Body to manipulate the data
 
-	//fmt.Printf("Visit: %s\n", ctx.URL())
+	printDebug(fmt.Sprintf("Visiting: %s\n", ctx.URL()))
 
 	u, _ := url.Parse(fmt.Sprintf("%v", ctx.URL()))
 
@@ -101,7 +108,8 @@ func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery
 		path = u.Path + "index.html"
 	}
 
-	//fmt.Printf("Writing to: %s\n", path)
+	printDebug(fmt.Sprintf("Writing to: %s\n", path))
+
 	contentType := res.Header.Get("Content-Type")
 	writeFile(destination+path, strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{"), contentType)
 
@@ -131,7 +139,12 @@ func main() {
 	domainsArg := flag.String("domains", "", "The domain of the Wordpress site to archive.")
 	destArg := flag.String("dest", "", "Destination local directory or S3 bucket.")
 	maxArg := flag.String("max", "1000", "The maximum amount of pages to crawl on the site.")
+	debugArg := flag.String("debug", "", "If set, prints debug statements.")
 	flag.Parse()
+
+	if *debugArg != "" {
+		debug = true
+	}
 
 	if *domainsArg == "" {
 		err := errors.New("Missing domain! Run with -h to see all options.\n")
@@ -173,6 +186,6 @@ func main() {
 	opts.MaxVisits, _ = strconv.Atoi(*maxArg)
 
 	c := gocrawl.NewCrawlerWithOptions(opts)
-	fmt.Printf("Starting crawler on %s\n", domains[0])
+	printDebug(fmt.Sprintf("Starting crawler on %s\n", domains[0]))
 	c.Run("http://" + domains[0])
 }
