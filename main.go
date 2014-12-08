@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -89,7 +90,7 @@ type Ext struct {
 func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Document) (interface{}, bool) {
 	// Use the goquery document or res.Body to manipulate the data
 
-	fmt.Printf("Visit: %s\n", ctx.URL())
+	//fmt.Printf("Visit: %s\n", ctx.URL())
 
 	u, _ := url.Parse(fmt.Sprintf("%v", ctx.URL()))
 
@@ -129,6 +130,7 @@ func (this *Ext) Filter(ctx *gocrawl.URLContext, isVisited bool) bool {
 func main() {
 	domainsArg := flag.String("domains", "", "The domain of the Wordpress site to archive.")
 	destArg := flag.String("dest", "", "Destination local directory or S3 bucket.")
+	maxArg := flag.String("max", "1000", "The maximum amount of pages to crawl on the site.")
 	flag.Parse()
 
 	if *domainsArg == "" {
@@ -168,7 +170,7 @@ func main() {
 	opts.CrawlDelay = 1 * time.Second
 	opts.LogFlags = gocrawl.LogError
 	opts.SameHostOnly = false
-	opts.MaxVisits = 5
+	opts.MaxVisits, _ = strconv.Atoi(*maxArg)
 
 	c := gocrawl.NewCrawlerWithOptions(opts)
 	fmt.Printf("Starting crawler on %s\n", domains[0])

@@ -10,3 +10,5 @@ A Golang project to backup a static copy of a Wordpress site either to a local d
 -dest="": Destination local directory or S3 bucket.
 
 -domains="": The domain of the Wordpress site to archive.
+
+-max="1000": The maximum amount of pages to crawl on the site.
