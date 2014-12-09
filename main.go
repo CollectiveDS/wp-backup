@@ -57,12 +57,16 @@ func writeToDisk(path string, str string) {
 
 	// Write the file
 	f, err := os.Create(path)
-	checkErr(err)
+	if err != nil {
+		printDebug(fmt.Sprintf("Create File Error: %s\n", err.Error()))
+	}
 
 	defer f.Close()
 
 	_, err = f.WriteString(str)
-	checkErr(err)
+	if err != nil {
+		printDebug(fmt.Sprintf("Write File Error: %s\n", err.Error()))
+	}
 
 	f.Sync()
 }
@@ -76,7 +80,7 @@ func writeToS3(uri string, str string, ctype string) {
 	data := []byte(str)
 	err := bucket.Put(path, data, ctype, s3.PublicRead)
 	if err != nil {
-		panic(err.Error())
+		printDebug(fmt.Sprintf("S3 Put Error: %s\n", err.Error()))
 	}
 }
 
