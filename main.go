@@ -143,10 +143,10 @@ func main() {
 	domainsArg := flag.String("domains", "", "The domain of the Wordpress site to archive.")
 	destArg := flag.String("dest", "", "Destination local directory or S3 bucket.")
 	maxArg := flag.String("max", "1000", "The maximum amount of pages to crawl on the site.")
-	debugArg := flag.String("debug", "", "If set, prints debug statements.")
+	debugArg := flag.Bool("debug", false, "If set, prints debug statements.")
 	flag.Parse()
 
-	if *debugArg != "" {
+	if *debugArg != false {
 		debug = true
 	}
 
