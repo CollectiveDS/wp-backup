@@ -115,7 +115,9 @@ func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery
 	printDebug(fmt.Sprintf("Writing to: %s\n", path))
 
 	contentType := res.Header.Get("Content-Type")
-	writeFile(destination+path, strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{"), contentType)
+	bodybody := strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{")
+	bodybody = strings.TrimSuffix(fmt.Sprintf("%v", res.Body), "}")
+	writeFile(destination+path, bodybody, contentType)
 
 	return nil, true
 }
