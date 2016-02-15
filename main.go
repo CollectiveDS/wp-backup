@@ -15,8 +15,8 @@ import (
 	"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
 
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/s3"
+	"gopkg.in/amz.v1/aws"
+	"gopkg.in/amz.v1/s3"
 )
 
 var (
@@ -115,7 +115,9 @@ func (this *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery
 	printDebug(fmt.Sprintf("Writing to: %s\n", path))
 
 	contentType := res.Header.Get("Content-Type")
-	writeFile(destination+path, strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{"), contentType)
+	bodybody := strings.TrimPrefix(fmt.Sprintf("%v", res.Body), "{")
+	bodybody = strings.TrimSuffix(fmt.Sprintf("%v", res.Body), "}")
+	writeFile(destination+path, bodybody, contentType)
 
 	return nil, true
 }
@@ -143,10 +145,10 @@ func main() {
 	domainsArg := flag.String("domains", "", "The domain of the Wordpress site to archive.")
 	destArg := flag.String("dest", "", "Destination local directory or S3 bucket.")
 	maxArg := flag.String("max", "1000", "The maximum amount of pages to crawl on the site.")
-	debugArg := flag.String("debug", "", "If set, prints debug statements.")
+	debugArg := flag.Bool("debug", false, "If set, prints debug statements.")
 	flag.Parse()
 
-	if *debugArg != "" {
+	if *debugArg != false {
 		debug = true
 	}
 
